@@ -1,8 +1,11 @@
 import Link from "next/link";
-import { Header } from "@/components/layout/Header";
-import { WeakDimCard } from "@/components/dashboard/WeakDimCard";
 import { getRecentSessions } from "@/lib/queries/sessions";
-import { weakestDimension, DIMENSION_LABELS } from "@/lib/reports";
+import { weakestDimension } from "@/lib/reports";
+import { WeakDimCard } from "@/components/dashboard/WeakDimCard";
+import { Card, CardHeader, CardBody } from "@/components/ui/Card";
+import { Heading } from "@/components/ui/Heading";
+import { Text } from "@/components/ui/Text";
+import { Badge } from "@/components/ui/Badge";
 
 function isThisWeek(dateStr: string) {
   const d = new Date(dateStr);
@@ -11,98 +14,116 @@ function isThisWeek(dateStr: string) {
   return d >= weekAgo;
 }
 
+function scoreAvg(s: {
+  score_structure: number; score_math: number; score_creativity: number;
+  score_communication: number; score_data_analysis: number;
+}) {
+  return (s.score_structure + s.score_math + s.score_creativity +
+    s.score_communication + s.score_data_analysis) / 5;
+}
+
+function avgColor(avg: number) {
+  if (avg >= 4) return "text-emerald-400";
+  if (avg >= 3) return "text-amber-400";
+  return "text-rose-400";
+}
+
 export default async function DashboardPage() {
   const sessions = await getRecentSessions(20);
   const thisWeek = sessions.filter((s) => isThisWeek(s.date)).length;
-  const weakDim = weakestDimension(sessions);
+  const weakDim  = weakestDimension(sessions);
 
   return (
-    <div>
-      <Header title="Dashboard" />
-      <div className="max-w-lg mx-auto p-4 space-y-4">
+    <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+      <Heading as="h1">Dashboard</Heading>
 
-        {/* Stats row */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-            <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">This week</p>
-            <p className="text-4xl font-bold text-gray-900 mt-1">{thisWeek}</p>
-            <p className="text-xs text-gray-400 mt-0.5">sessions</p>
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-3">
+        <Card>
+          <CardBody>
+            <Text muted size="xs" className="uppercase tracking-wide font-medium">This week</Text>
+            <p className="text-4xl font-bold text-primary mt-1 leading-none">{thisWeek}</p>
+            <Text muted size="xs" className="mt-1">sessions</Text>
+          </CardBody>
+        </Card>
+        <Card>
+          <CardBody>
+            <Text muted size="xs" className="uppercase tracking-wide font-medium">Total</Text>
+            <p className="text-4xl font-bold text-primary mt-1 leading-none">{sessions.length}</p>
+            <Text muted size="xs" className="mt-1">logged</Text>
+          </CardBody>
+        </Card>
+      </div>
+
+      {/* Log CTA */}
+      <Link href="/log" className="block">
+        <div className="bg-accent hover:bg-accent-hover rounded-md p-4 flex items-center justify-between transition-colors">
+          <div>
+            <p className="font-semibold text-white">Log a session</p>
+            <p className="text-blue-200 text-xs mt-0.5">Record today&apos;s practice</p>
           </div>
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-            <p className="text-xs text-gray-400 font-medium uppercase tracking-wide">Total</p>
-            <p className="text-4xl font-bold text-gray-900 mt-1">{sessions.length}</p>
-            <p className="text-xs text-gray-400 mt-0.5">logged</p>
-          </div>
+          <span className="text-white text-2xl font-light select-none">+</span>
         </div>
+      </Link>
 
-        {/* Quick log CTA */}
-        <Link href="/log">
-          <div className="bg-blue-600 text-white rounded-xl p-4 flex items-center justify-between active:bg-blue-700 transition-colors">
-            <div>
-              <p className="font-semibold text-base">Log a session</p>
-              <p className="text-blue-200 text-xs mt-0.5">Record today&apos;s practice</p>
-            </div>
-            <span className="text-2xl">+</span>
-          </div>
-        </Link>
+      {/* Weak dimension */}
+      {weakDim && sessions.length > 0 && (
+        <WeakDimCard dimension={weakDim} sessions={sessions} />
+      )}
 
-        {/* Weak dimension */}
-        {weakDim && sessions.length > 0 && (
-          <WeakDimCard dimension={weakDim} sessions={sessions} />
-        )}
-
-        {/* Recent sessions */}
-        {sessions.length > 0 ? (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-gray-50">
-              <h2 className="text-sm font-semibold text-gray-900">Recent sessions</h2>
-            </div>
-            {sessions.slice(0, 5).map((s) => (
-              <div
-                key={s.id}
-                className="px-4 py-3 border-b border-gray-50 last:border-0 flex items-center justify-between"
-              >
-                <div>
-                  <p className="text-sm font-medium text-gray-900">
-                    {s.case_types?.name ?? "Case"}
-                    {s.case_name ? ` — ${s.case_name}` : ""}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {s.partners?.name ?? "No partner"} · {s.date}
-                  </p>
-                </div>
-                <span
-                  className={`text-sm font-bold tabular-nums ${
-                    ((s.score_structure + s.score_math + s.score_creativity +
-                      s.score_communication + s.score_data_analysis) / 5) <= 2
-                      ? "text-red-400"
-                      : ((s.score_structure + s.score_math + s.score_creativity +
-                          s.score_communication + s.score_data_analysis) / 5) < 4
-                      ? "text-yellow-500"
-                      : "text-green-500"
+      {/* Recent sessions */}
+      {sessions.length > 0 ? (
+        <Card>
+          <CardHeader>
+            <Heading as="h3">Recent sessions</Heading>
+          </CardHeader>
+          <div>
+            {sessions.slice(0, 5).map((s, i) => {
+              const avg = scoreAvg(s);
+              return (
+                <div
+                  key={s.id}
+                  className={`px-4 py-3 flex items-center justify-between gap-3 ${
+                    i < Math.min(sessions.length, 5) - 1 ? "border-b border-divider" : ""
                   }`}
                 >
-                  {((s.score_structure + s.score_math + s.score_creativity +
-                    s.score_communication + s.score_data_analysis) / 5).toFixed(1)}
-                </span>
-              </div>
-            ))}
+                  <div className="flex-1 min-w-0 space-y-0.5">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {s.case_types?.name && (
+                        <Badge variant="default">{s.case_types.name}</Badge>
+                      )}
+                      {s.case_name && (
+                        <span className="text-sm text-primary truncate">{s.case_name}</span>
+                      )}
+                    </div>
+                    <Text muted size="xs">
+                      {s.partners?.name ?? "—"} · {s.date}
+                    </Text>
+                  </div>
+                  <span className={`text-sm font-bold tabular-nums shrink-0 ${avgColor(avg)}`}>
+                    {avg.toFixed(1)}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="border-t border-divider">
             <Link
               href="/sessions"
-              className="block px-4 py-3 text-center text-sm text-blue-600 font-medium hover:bg-gray-50"
+              className="block px-4 py-3 text-center text-sm text-accent hover:text-accent-hover transition-colors font-medium"
             >
               See all sessions →
             </Link>
           </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-400 text-sm">No sessions yet.</p>
-            <Link href="/log" className="text-blue-600 text-sm font-medium hover:underline mt-1 block">
-              Log your first session →
-            </Link>
-          </div>
-        )}
-      </div>
+        </Card>
+      ) : (
+        <div className="py-16 text-center space-y-2">
+          <Text muted>No sessions yet.</Text>
+          <Link href="/log" className="text-accent text-sm font-medium hover:text-accent-hover block">
+            Log your first session →
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

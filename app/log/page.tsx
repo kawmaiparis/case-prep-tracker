@@ -1,13 +1,13 @@
-import { Header } from "@/components/layout/Header";
 import { SessionForm } from "@/components/sessions/SessionForm";
 import { getPartners, getCaseTypes } from "@/lib/queries/partners";
+import { Heading } from "@/components/ui/Heading";
 
 export default async function LogPage() {
   const [partners, caseTypes] = await Promise.all([getPartners(), getCaseTypes()]);
 
   return (
-    <div>
-      <Header title="Log Session" />
+    <div className="max-w-2xl mx-auto px-4 py-6">
+      <Heading as="h1" className="mb-6">Log Session</Heading>
       <SessionForm partners={partners} caseTypes={caseTypes} />
     </div>
   );

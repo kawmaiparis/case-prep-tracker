@@ -1,64 +1,65 @@
-import { Header } from "@/components/layout/Header";
 import { getAllSessions } from "@/lib/queries/sessions";
 import { drillPlan } from "@/lib/reports";
+import { Card, CardBody } from "@/components/ui/Card";
+import { Heading } from "@/components/ui/Heading";
+import { Text } from "@/components/ui/Text";
+import { Badge } from "@/components/ui/Badge";
+
+function avgColor(score: number) {
+  if (score >= 4) return "text-emerald-400";
+  if (score >= 3) return "text-amber-400";
+  return "text-rose-400";
+}
 
 export default async function DrillsPage() {
   const sessions = await getAllSessions();
   const plan = drillPlan(sessions);
 
   return (
-    <div>
-      <Header title="Drill Plan" />
-      <div className="max-w-lg mx-auto p-4 space-y-4">
-        {plan.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-400 text-sm">Log at least one session to get a drill plan.</p>
-          </div>
-        ) : (
-          <>
-            <p className="text-xs text-gray-400">
-              Based on your last {Math.min(sessions.length, 10)} sessions
-            </p>
-            {plan.map((item, i) => (
-              <div
-                key={item.dimension}
-                className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3"
-              >
-                <div className="flex items-start justify-between">
+    <div className="max-w-2xl mx-auto px-4 py-6 space-y-4">
+      <div>
+        <Heading as="h1">Drill Plan</Heading>
+        {sessions.length > 0 && (
+          <Text muted size="sm" className="mt-1">
+            Based on your last {Math.min(sessions.length, 10)} sessions
+          </Text>
+        )}
+      </div>
+
+      {plan.length === 0 ? (
+        <div className="py-16 text-center">
+          <Text muted>Log at least one session to get a drill plan.</Text>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {plan.map((item, i) => (
+            <Card key={item.dimension}>
+              <CardBody className="space-y-4">
+                <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold text-blue-600 uppercase tracking-wider">
-                      #{i + 1} Weakest
-                    </p>
-                    <h2 className="text-lg font-bold text-gray-900 mt-0.5">{item.label}</h2>
+                    <Badge variant="warning">#{i + 1} Weakest</Badge>
+                    <Heading as="h2" className="mt-1.5">{item.label}</Heading>
                   </div>
-                  <span
-                    className={`text-xl font-bold tabular-nums ${
-                      item.avgScore <= 2
-                        ? "text-red-500"
-                        : item.avgScore < 4
-                        ? "text-yellow-500"
-                        : "text-green-600"
-                    }`}
-                  >
+                  <span className={`text-2xl font-bold tabular-nums shrink-0 ${avgColor(item.avgScore)}`}>
                     {item.avgScore.toFixed(1)}
                   </span>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {item.drills.map((drill, j) => (
                     <div key={j} className="flex gap-3">
-                      <span className="text-blue-400 font-bold text-sm shrink-0 mt-0.5">
+                      <span className="text-accent font-semibold text-sm shrink-0 tabular-nums mt-0.5">
                         {j + 1}.
                       </span>
-                      <p className="text-sm text-gray-700 leading-snug">{drill}</p>
+                      <Text size="sm" className="leading-relaxed">{drill}</Text>
                     </div>
                   ))}
                 </div>
-              </div>
-            ))}
-          </>
-        )}
-      </div>
+              </CardBody>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

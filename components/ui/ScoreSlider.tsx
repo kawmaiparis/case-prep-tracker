@@ -23,7 +23,7 @@ export function ScoreSlider({ name, label, value, onChange }: ScoreSliderProps) 
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-baseline">
-        <label className="text-sm font-medium text-gray-700">{label}</label>
+        <label className="text-sm font-medium text-primary">{label}</label>
         <span className={cn("text-sm font-semibold tabular-nums", SCORE_COLORS[value])}>
           {value} — {SCORE_LABELS[value]}
         </span>
@@ -36,20 +36,20 @@ export function ScoreSlider({ name, label, value, onChange }: ScoreSliderProps) 
         step="1"
         value={value}
         onChange={(e) => onChange(parseInt(e.target.value))}
-        className="w-full h-2 rounded-full appearance-none cursor-pointer bg-gray-200
+        className="w-full h-2 rounded-full appearance-none cursor-pointer bg-surface-hover
           [&::-webkit-slider-thumb]:appearance-none
           [&::-webkit-slider-thumb]:w-5
           [&::-webkit-slider-thumb]:h-5
           [&::-webkit-slider-thumb]:rounded-full
-          [&::-webkit-slider-thumb]:bg-blue-600
+          [&::-webkit-slider-thumb]:bg-accent
           [&::-webkit-slider-thumb]:shadow-sm
           [&::-moz-range-thumb]:w-5
           [&::-moz-range-thumb]:h-5
           [&::-moz-range-thumb]:rounded-full
-          [&::-moz-range-thumb]:bg-blue-600
+          [&::-moz-range-thumb]:bg-accent
           [&::-moz-range-thumb]:border-0"
       />
-      <div className="flex justify-between text-xs text-gray-400 px-0.5">
+      <div className="flex justify-between text-xs text-muted px-0.5">
         {[1, 2, 3, 4, 5].map((n) => (
           <span key={n}>{n}</span>
         ))}
