@@ -36,7 +36,7 @@ export function WeakDimCard({ dimension, sessions }: WeakDimCardProps) {
         <div className="space-y-1.5">
           {SCORE_DIMENSIONS.map((dim) => {
             const pct  = (avgs[dim] / 5) * 100;
-            const fill = avgs[dim] <= 2 ? "bg-rose-400" : avgs[dim] < 4 ? "bg-amber-400" : "bg-accent";
+            const fill = avgs[dim] <= 2 ? "bg-warning" : avgs[dim] < 4 ? "bg-muted/50" : "bg-accent";
             return (
               <div key={dim} className="flex items-center gap-2">
                 <Text muted size="xs" className="w-28 shrink-0 truncate">

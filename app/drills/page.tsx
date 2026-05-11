@@ -6,9 +6,9 @@ import { Text } from "@/components/ui/Text";
 import { Badge } from "@/components/ui/Badge";
 
 function avgColor(score: number) {
-  if (score >= 4) return "text-emerald-400";
-  if (score >= 3) return "text-amber-400";
-  return "text-rose-400";
+  if (score >= 4) return "text-accent";
+  if (score >= 3) return "text-muted";
+  return "text-warning";
 }
 
 export default async function DrillsPage() {

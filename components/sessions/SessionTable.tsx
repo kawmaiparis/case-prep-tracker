@@ -25,9 +25,9 @@ function scoreAvg(s: SessionWithDetails) {
 }
 
 function avgColor(avg: number) {
-  if (avg >= 4) return "text-emerald-400";
-  if (avg >= 3) return "text-amber-400";
-  return "text-rose-400";
+  if (avg >= 4) return "text-accent";
+  if (avg >= 3) return "text-muted";
+  return "text-warning";
 }
 
 const selectCls =
