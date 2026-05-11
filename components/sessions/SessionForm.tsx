@@ -28,11 +28,10 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="w-full bg-blue-600 text-white rounded-xl py-3.5 font-semibold text-base
-        hover:bg-blue-700 active:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed
-        transition-colors"
+      className="w-full bg-accent hover:bg-accent-hover text-white rounded py-3 font-semibold text-sm
+        disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
     >
-      {pending ? "Saving..." : "Save Session"}
+      {pending ? "Saving…" : "Save Session"}
     </button>
   );
 }
@@ -98,8 +97,8 @@ export function SessionForm({ partners, caseTypes }: Props) {
         placeholder="e.g. Healthcare"
       />
 
-      <div className="space-y-4 bg-gray-50 rounded-xl p-4">
-        <p className="text-sm font-semibold text-gray-700">Scores</p>
+      <div className="space-y-4 bg-surface-hover rounded-md p-4">
+        <p className="text-sm font-semibold text-primary">Scores</p>
         <ScoreSlider
           name="score_structure"
           label="Structure"
