@@ -29,7 +29,7 @@ function useChartColors() {
 
   return {
     accent:    dark ? "#06B6D4" : "#0891B2",
-    weak:      dark ? "#F471B5" : "#DB2777",
+    weak:      dark ? "#C084FC" : "#9333EA",
     highlight: dark ? "#A78BFA" : "#7C3AED",
     grid:      dark ? "#27272F" : "#E4E4E7",
     muted:     "#71717A",
