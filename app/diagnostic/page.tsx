@@ -150,18 +150,18 @@ export default async function DiagnosticPage() {
   ];
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+    <div className="max-w-6xl mx-auto px-4 lg:px-8 py-6 space-y-5">
 
       {/* Header */}
-      <div>
+      <div className="flex items-baseline justify-between gap-4">
         <Heading as="h1">Performance Diagnostic</Heading>
-        <Text muted size="sm" className="mt-1">
-          {sessions.length} sessions · {trendData.length} weeks · Last session {lastDate}
+        <Text muted size="xs" className="shrink-0">
+          {sessions.length} sessions · {trendData.length} weeks · last {lastDate}
         </Text>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {/* KPI strip */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard label="Overall avg" value={overallAvg.toFixed(1)} sub="out of 5" />
         <StatCard label="Sessions" value={String(sessions.length)} sub="logged" />
         <StatCard label="Weeks" value={String(trendData.length)} sub="of prep" />
@@ -173,27 +173,29 @@ export default async function DiagnosticPage() {
         />
       </div>
 
-      {/* Charts */}
+      {/* Charts — 12-col grid managed inside DiagnosticCharts */}
       <DiagnosticCharts
         dimensionData={dimensionData}
         trendData={trendData}
         caseTypeData={caseTypeData}
       />
 
-      {/* Recommendations */}
+      {/* Focus areas — 3-col on md+ */}
       <div className="space-y-3">
         <Heading as="h3">Focus Areas</Heading>
-        {recommendations.map((r) => (
-          <Card key={r.title}>
-            <CardBody className="space-y-1.5">
-              <div className="flex items-center gap-2">
-                <Badge variant={r.badge}>{r.label}</Badge>
-                <span className="text-sm font-semibold text-primary">{r.title}</span>
-              </div>
-              <Text muted size="sm">{r.body}</Text>
-            </CardBody>
-          </Card>
-        ))}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {recommendations.map((r) => (
+            <Card key={r.title}>
+              <CardBody className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Badge variant={r.badge}>{r.label}</Badge>
+                </div>
+                <p className="text-sm font-semibold text-primary leading-snug">{r.title}</p>
+                <Text muted size="sm" className="leading-relaxed">{r.body}</Text>
+              </CardBody>
+            </Card>
+          ))}
+        </div>
       </div>
 
     </div>
