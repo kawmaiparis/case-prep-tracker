@@ -2,8 +2,13 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { Providers } from "./providers";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   title: "Case Prep Tracker",
@@ -22,10 +27,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} bg-gray-50 min-h-screen`}>
-        <main className="pb-20">{children}</main>
-        <BottomNav />
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
+      <body className="min-h-screen font-sans">
+        <Providers>
+          <main className="pb-20">{children}</main>
+          <BottomNav />
+        </Providers>
       </body>
     </html>
   );

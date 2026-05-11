@@ -3,7 +3,50 @@
 @tailwind utilities;
 
 @layer base {
+  :root,
+  .dark {
+    --bg: #0A0A0B;
+    --surface: #141416;
+    --surface-hover: #1C1C20;
+    --border: #26262A;
+    --text-primary: #FAFAF9;
+    --text-muted: #8B8B93;
+    --accent: #3B82F6;
+    --accent-hover: #60A5FA;
+  }
+
+  .light {
+    --bg: #FAFAF9;
+    --surface: #FFFFFF;
+    --surface-hover: #F3F3F1;
+    --border: #E5E5E5;
+    --text-primary: #0A0A0B;
+    --text-muted: #737373;
+    --accent: #1E40AF;
+    --accent-hover: #1D4ED8;
+  }
+
   html {
     -webkit-tap-highlight-color: transparent;
   }
+
+  body {
+    background-color: var(--bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-6px); }
+  40%       { transform: translateX(6px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
 }

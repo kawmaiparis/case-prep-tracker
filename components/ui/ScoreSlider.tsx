@@ -5,11 +5,11 @@ import { cn } from "@/lib/utils";
 const SCORE_LABELS = ["", "Poor", "Below Avg", "Average", "Good", "Excellent"];
 const SCORE_COLORS = [
   "",
-  "text-red-500",
-  "text-orange-500",
-  "text-yellow-500",
-  "text-green-500",
-  "text-emerald-600",
+  "text-rose-400",
+  "text-amber-400",
+  "text-yellow-400",
+  "text-emerald-400",
+  "text-emerald-400",
 ];
 
 type ScoreSliderProps = {
@@ -65,18 +65,15 @@ type ScoreBarProps = {
 
 export function ScoreBar({ value, max = 5 }: ScoreBarProps) {
   const pct = (value / max) * 100;
-  const color =
-    value <= 2 ? "bg-red-400" : value === 3 ? "bg-yellow-400" : "bg-green-500";
+  const fill =
+    value <= 2 ? "bg-rose-400" : value === 3 ? "bg-amber-400" : "bg-accent";
 
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-        <div
-          className={cn("h-full rounded-full transition-all", color)}
-          style={{ width: `${pct}%` }}
-        />
+      <div className="flex-1 h-1.5 bg-surface-hover rounded-full overflow-hidden">
+        <div className={cn("h-full rounded-full", fill)} style={{ width: `${pct}%` }} />
       </div>
-      <span className={cn("text-xs font-semibold tabular-nums w-4", SCORE_COLORS[Math.round(value)])}>
+      <span className={cn("text-xs font-semibold tabular-nums w-4 text-right", SCORE_COLORS[Math.round(value)])}>
         {value % 1 === 0 ? value : value.toFixed(1)}
       </span>
     </div>
