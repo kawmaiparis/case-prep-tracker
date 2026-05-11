@@ -25,9 +25,17 @@ const config: Config = {
           hover: "var(--accent-hover)",
           bg: "var(--accent-bg)",
         },
+        positive: {
+          DEFAULT: "var(--positive)",
+          bg: "var(--positive-bg)",
+        },
         warning: {
           DEFAULT: "var(--warning)",
           bg: "var(--warning-bg)",
+        },
+        highlight: {
+          DEFAULT: "var(--highlight)",
+          bg: "var(--highlight-bg)",
         },
       },
       fontFamily: {

@@ -169,7 +169,7 @@ export default async function DiagnosticPage() {
           label="Trend"
           value={trend === "up" ? "↑ Rising" : trend === "down" ? "↓ Slipping" : "→ Stable"}
           sub="2nd half vs 1st half"
-          accent={trend === "up"}
+          color={trend === "up" ? "positive" : trend === "down" ? "warning" : "default"}
         />
       </div>
 
@@ -201,17 +201,19 @@ export default async function DiagnosticPage() {
 }
 
 function StatCard({
-  label, value, sub, accent = false,
+  label, value, sub, color = "default",
 }: {
-  label: string; value: string; sub: string; accent?: boolean;
+  label: string; value: string; sub: string; color?: "default" | "positive" | "warning";
 }) {
+  const valueClass =
+    color === "positive" ? "text-positive" :
+    color === "warning"  ? "text-warning"  :
+    "text-primary";
   return (
     <Card>
       <CardBody className="space-y-0.5">
         <Text muted size="xs">{label}</Text>
-        <p className={`text-xl font-bold leading-tight ${accent ? "text-accent" : "text-primary"}`}>
-          {value}
-        </p>
+        <p className={`text-xl font-bold leading-tight ${valueClass}`}>{value}</p>
         <Text muted size="xs">{sub}</Text>
       </CardBody>
     </Card>

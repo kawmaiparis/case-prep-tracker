@@ -1,5 +1,7 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 import {
   BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip,
@@ -7,23 +9,6 @@ import {
 } from "recharts";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Heading } from "@/components/ui/Heading";
-
-const C = {
-  accent:  "#3B82F6",
-  weak:    "#F59E0B",
-  grid:    "#26262A",
-  muted:   "#8B8B93",
-  surface: "#141416",
-  primary: "#FAFAF9",
-};
-
-const tooltipStyle = {
-  backgroundColor: C.surface,
-  border: `1px solid ${C.grid}`,
-  borderRadius: 6,
-  color: C.primary,
-  fontSize: 12,
-};
 
 export type DimensionPoint = { name: string; avg: number };
 export type TrendPoint     = { week: string; avg: number };
@@ -35,8 +20,39 @@ type Props = {
   caseTypeData:  CaseTypePoint[];
 };
 
+function useChartColors() {
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const dark = !mounted || resolvedTheme !== "light";
+
+  return {
+    accent:    dark ? "#06B6D4" : "#0891B2",
+    weak:      dark ? "#F471B5" : "#DB2777",
+    highlight: dark ? "#A78BFA" : "#7C3AED",
+    grid:      dark ? "#27272F" : "#E4E4E7",
+    muted:     "#71717A",
+    surface:   dark ? "#14141B" : "#FFFFFF",
+    primary:   dark ? "#FAFAFA" : "#18181B",
+  };
+}
+
 export function DiagnosticCharts({ dimensionData, trendData, caseTypeData }: Props) {
-  const weakestIdx = 0; // data sorted ascending — index 0 is weakest
+  const C = useChartColors();
+
+  const tooltipStyle = {
+    backgroundColor: C.surface,
+    border: `1px solid ${C.grid}`,
+    borderRadius: 6,
+    color: C.primary,
+    fontSize: 12,
+  };
+
+  // data sorted ascending → index 0 is weakest dimension
+  const weakestIdx = 0;
+  // data sorted descending → last index is worst case type
+  const worstTypeIdx = caseTypeData.length - 1;
 
   return (
     <div className="space-y-4">
@@ -123,7 +139,18 @@ export function DiagnosticCharts({ dimensionData, trendData, caseTypeData }: Pro
                 dataKey="avg"
                 stroke={C.accent}
                 strokeWidth={2}
-                dot={{ fill: C.accent, r: 3, strokeWidth: 0 }}
+                dot={(props: any) => {
+                  const isLast = props.index === trendData.length - 1;
+                  return (
+                    <circle
+                      key={props.index}
+                      cx={props.cx}
+                      cy={props.cy}
+                      r={isLast ? 5 : 3}
+                      fill={isLast ? C.highlight : C.accent}
+                    />
+                  );
+                }}
                 activeDot={{ r: 5, strokeWidth: 0 }}
               />
             </LineChart>
@@ -166,7 +193,15 @@ export function DiagnosticCharts({ dimensionData, trendData, caseTypeData }: Pro
                   caseTypeData.find((d) => d.shortType === label)?.type ?? label
                 }
               />
-              <Bar dataKey="avg" fill={C.accent} fillOpacity={0.8} radius={[3, 3, 0, 0]} maxBarSize={52} />
+              <Bar dataKey="avg" radius={[3, 3, 0, 0]} maxBarSize={52}>
+                {caseTypeData.map((entry, i) => (
+                  <Cell
+                    key={entry.type}
+                    fill={i === worstTypeIdx ? C.weak : C.accent}
+                    fillOpacity={i === worstTypeIdx ? 1 : 0.8}
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </CardBody>
