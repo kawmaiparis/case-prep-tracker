@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 import { SidebarNav } from "./SidebarNav";
 
 const HIDDEN_ON = ["/login", "/gate", "/about"];
@@ -26,21 +27,20 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const hideSidebar = HIDDEN_ON.some((p) => pathname === p) || pathname.startsWith("/auth");
 
+  // Sidebar offset only applies on md+ (desktop). On mobile the sidebar is
+  // hidden and the bottom tab bar is used instead — no left padding needed.
+  const offsetClass = !hideSidebar && mounted
+    ? collapsed ? "md:pl-14" : "md:pl-52"
+    : "";
+
   return (
     <>
       <SidebarNav
         collapsed={collapsed}
         onToggleCollapsed={toggleCollapsed}
       />
-      <div
-        className="transition-[padding-left] duration-200"
-        style={
-          !hideSidebar && mounted
-            ? { paddingLeft: collapsed ? "3.5rem" : "13rem" }
-            : undefined
-        }
-      >
-        {/* bottom padding on mobile to clear the fixed tab bar */}
+      <div className={cn("transition-[padding-left] duration-200", offsetClass)}>
+        {/* bottom padding on mobile clears the fixed tab bar */}
         <main className={hideSidebar ? "" : "pb-16 md:pb-0"}>
           {children}
         </main>
