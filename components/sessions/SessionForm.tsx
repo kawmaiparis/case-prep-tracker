@@ -44,59 +44,64 @@ export function SessionForm({ partners, caseTypes }: Props) {
   }
 
   return (
-    <form action={logSession} className="space-y-5 p-4 max-w-lg mx-auto">
-      <Input
-        id="date"
-        name="date"
-        type="date"
-        label="Date"
-        defaultValue={today}
-        required
-      />
+    <form action={logSession} className="space-y-5">
 
-      <Select id="partner_id" name="partner_id" label="Partner">
-        <option value="">— no partner —</option>
-        {partners.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.name}
-            {p.is_paid_coach ? " (coach)" : ""}
-          </option>
-        ))}
-      </Select>
+      {/* Row 1: Date + Partner */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <Input
+          id="date"
+          name="date"
+          type="date"
+          label="Date"
+          defaultValue={today}
+          required
+        />
+        <Select id="partner_id" name="partner_id" label="Partner">
+          <option value="">— no partner —</option>
+          {partners.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}{p.is_paid_coach ? " (coach)" : ""}
+            </option>
+          ))}
+        </Select>
+      </div>
 
-      <Select id="case_type_id" name="case_type_id" label="Case type">
-        <option value="">— select type —</option>
-        {caseTypes.map((ct) => (
-          <option key={ct.id} value={ct.id}>
-            {ct.name}
-          </option>
-        ))}
-      </Select>
+      {/* Row 2: Case type + Case name */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <Select id="case_type_id" name="case_type_id" label="Case type">
+          <option value="">— select type —</option>
+          {caseTypes.map((ct) => (
+            <option key={ct.id} value={ct.id}>{ct.name}</option>
+          ))}
+        </Select>
+        <Input
+          id="case_name"
+          name="case_name"
+          type="text"
+          label="Case name"
+          placeholder="e.g. Pharma Co. Profitability"
+        />
+      </div>
 
-      <Input
-        id="case_name"
-        name="case_name"
-        type="text"
-        label="Case name (optional)"
-        placeholder="e.g. Pharma Co. Profitability"
-      />
+      {/* Row 3: Case book + Industry */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <Input
+          id="case_book"
+          name="case_book"
+          type="text"
+          label="Case book"
+          placeholder="e.g. Wharton 2024"
+        />
+        <Input
+          id="industry"
+          name="industry"
+          type="text"
+          label="Industry"
+          placeholder="e.g. Healthcare"
+        />
+      </div>
 
-      <Input
-        id="case_book"
-        name="case_book"
-        type="text"
-        label="Case book (optional)"
-        placeholder="e.g. Wharton 2024"
-      />
-
-      <Input
-        id="industry"
-        name="industry"
-        type="text"
-        label="Industry (optional)"
-        placeholder="e.g. Healthcare"
-      />
-
+      {/* Scores */}
       <div className="space-y-4 bg-surface-hover rounded-md p-4">
         <p className="text-sm font-semibold text-primary">Scores</p>
         <ScoreSlider
@@ -134,7 +139,7 @@ export function SessionForm({ partners, caseTypes }: Props) {
       <Textarea
         id="notes"
         name="notes"
-        label="Notes (optional)"
+        label="Notes"
         placeholder="What went well? What to improve?"
         rows={4}
       />

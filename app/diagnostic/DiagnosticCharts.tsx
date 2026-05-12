@@ -23,6 +23,16 @@ export type CalendarDay    = { date: string; dayOfWeek: number; weekIndex: numbe
 export type IndustryPoint  = { industry: string; shortIndustry: string; avg: number; count: number };
 export type CaseTypePoint  = { type: string; shortType: string; avg: number; count: number };
 
+export type ChartSubtitles = {
+  skillProfile: string;
+  progressTime: string;
+  dimTrends:    string;
+  sessionsWeek: string;
+  caseType:     string;
+  calendar:     string;
+  industry:     string;
+};
+
 type Props = {
   dimensionData: DimensionPoint[];
   trendData:     TrendPoint[];
@@ -31,6 +41,7 @@ type Props = {
   caseTypeData:  CaseTypePoint[];
   calendarData:  CalendarDay[];
   industryData:  IndustryPoint[];
+  subtitles:     ChartSubtitles;
 };
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -39,15 +50,12 @@ const DIM_SHORT: Record<string, string> = {
   structure: "Structure", math: "Math", creativity: "Creativity",
   communication: "Comm.", data_analysis: "Data A.",
 };
-const DAY_LABELS = ["M", "T", "W", "T", "F", "S", "S"];
 
-// 5-series palette — cyan, mint, purple, violet, amber
-const SERIES_DARK  = ["#06B6D4", "#10F4B1", "#C084FC", "#A78BFA", "#FBBF24"];
-const SERIES_LIGHT = ["#0891B2", "#059669", "#9333EA", "#7C3AED", "#D97706"];
+// 5-series palette — cyan, mint, coral, violet, amber (all unique)
+const SERIES_DARK  = ["#06B6D4", "#10F4B1", "#F43F5E", "#A78BFA", "#FBBF24"];
+const SERIES_LIGHT = ["#0891B2", "#059669", "#E11D48", "#7C3AED", "#D97706"];
 
 // ── Theme-aware colors ────────────────────────────────────────────────────────
-type C = ReturnType<typeof useChartColors>;
-
 function useChartColors() {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -55,8 +63,8 @@ function useChartColors() {
   const dark = !mounted || resolvedTheme !== "light";
   return {
     accent:          dark ? "#06B6D4" : "#0891B2",
-    weak:            dark ? "#C084FC" : "#9333EA",
-    highlight:       dark ? "#A78BFA" : "#7C3AED",
+    weak:            dark ? "#F43F5E" : "#E11D48",   // coral — replaces purple
+    highlight:       dark ? "#A78BFA" : "#7C3AED",   // violet — Progress last dot only
     positive:        dark ? "#10F4B1" : "#059669",
     grid:            dark ? "#27272F" : "#E4E4E7",
     muted:           "#71717A",
@@ -67,7 +75,9 @@ function useChartColors() {
   };
 }
 
-function tooltipBase(C: ReturnType<typeof useChartColors>) {
+type C = ReturnType<typeof useChartColors>;
+
+function tooltipBase(C: C) {
   return {
     backgroundColor: C.surface,
     border: `1px solid ${C.grid}`,
@@ -90,93 +100,96 @@ function ChartCard({ title, sub, children }: { title: string; sub: string; child
   );
 }
 
-// ── Calendar heatmap (custom CSS grid, no Recharts) ───────────────────────────
-function CalendarHeatmap({ data, C }: { data: CalendarDay[]; C: ReturnType<typeof useChartColors> }) {
+// ── Week-strip calendar (8 most-recent weeks, most-recent-first) ──────────────
+function WeekStripCalendar({ data, C }: { data: CalendarDay[]; C: C }) {
   if (!data.length) return null;
-  const numWeeks = Math.max(...data.map(d => d.weekIndex)) + 1;
+
+  const weekMap = new Map<number, CalendarDay[]>();
+  for (const d of data) {
+    if (!weekMap.has(d.weekIndex)) weekMap.set(d.weekIndex, []);
+    weekMap.get(d.weekIndex)!.push(d);
+  }
+
+  const allWeekIndices = Array.from(weekMap.keys()).sort((a, b) => a - b);
+  const recentWeeks    = allWeekIndices.slice(-8).reverse();
+
+  const DAY_COLS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
-    <div className="flex flex-col gap-1.5 mt-1">
-      {/* Week labels */}
-      <div style={{ display: "grid", gridTemplateColumns: `16px repeat(${numWeeks}, 1fr)`, gap: 3 }}>
+    <div className="flex flex-col gap-1 mt-1 overflow-x-auto">
+      {/* Column headers */}
+      <div style={{ display: "grid", gridTemplateColumns: "56px repeat(7, 1fr)", gap: 4 }}>
         <span />
-        {Array.from({ length: numWeeks }, (_, i) => (
-          <span
-            key={i}
-            style={{ fontSize: 10, color: C.muted, textAlign: "center", lineHeight: 1 }}
-          >
-            {i % 2 === 0 ? `W${i + 1}` : ""}
-          </span>
+        {DAY_COLS.map(d => (
+          <span key={d} style={{ fontSize: 10, color: C.muted, textAlign: "center" }}>{d}</span>
         ))}
       </div>
 
-      {/* Day labels + cells */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: `16px repeat(${numWeeks}, 1fr)`,
-          gridTemplateRows: "repeat(7, 12px)",
-          gap: 3,
-        }}
-      >
-        {/* Day labels */}
-        {DAY_LABELS.map((label, i) => (
-          <span
-            key={i}
-            style={{
-              gridColumn: 1,
-              gridRow: i + 1,
-              fontSize: 9,
-              color: C.muted,
-              lineHeight: "12px",
-              textAlign: "right",
-              paddingRight: 2,
-            }}
-          >
-            {[0, 2, 4].includes(i) ? label : ""}
-          </span>
-        ))}
+      {/* Week rows */}
+      {recentWeeks.map((wi) => {
+        const days      = weekMap.get(wi) ?? [];
+        const dayByDOW  = new Map(days.map(d => [d.dayOfWeek, d]));
+        const monday    = days.find(d => d.dayOfWeek === 0);
+        const weekLabel = monday ? monday.date.slice(5).replace("-", "/") : `W${wi + 1}`;
 
-        {/* Session cells */}
-        {data.map((day) => {
-          const bg = day.count === 0
-            ? C.surfaceElevated
-            : day.avg >= 4 ? C.accent
-            : day.avg >= 3 ? C.highlight
-            : C.weak;
-          const opacity = day.count === 0 ? 1 : 0.4 + (day.avg / 5) * 0.6;
-          return (
-            <div
-              key={day.date}
-              title={
-                day.count > 0
-                  ? `${day.date} · ${day.count} session${day.count > 1 ? "s" : ""} · avg ${day.avg.toFixed(1)}`
-                  : day.date
-              }
-              style={{
-                gridColumn: day.weekIndex + 2,
-                gridRow: day.dayOfWeek + 1,
-                backgroundColor: bg,
-                opacity,
-                borderRadius: 2,
-              }}
-            />
-          );
-        })}
-      </div>
+        return (
+          <div key={wi} style={{ display: "grid", gridTemplateColumns: "56px repeat(7, 1fr)", gap: 4 }}>
+            <span style={{ fontSize: 10, color: C.muted, lineHeight: "30px", whiteSpace: "nowrap" }}>
+              {weekLabel}
+            </span>
+            {Array.from({ length: 7 }, (_, dow) => {
+              const day        = dayByDOW.get(dow);
+              const hasSession = !!(day && day.count > 0);
+              const dotColor   = !hasSession ? "transparent"
+                : day.avg >= 3 ? C.accent   // cyan for ≥ 3.0 (medium and high)
+                : C.weak;                    // coral for < 3.0
+              const dotSize = !hasSession ? 0
+                : day.count >= 3 ? 10
+                : day.count === 2 ? 8
+                : 6;
+
+              return (
+                <div
+                  key={dow}
+                  title={
+                    day && hasSession
+                      ? `${day.date} · ${day.count} session${day.count > 1 ? "s" : ""} · avg ${day.avg.toFixed(1)}`
+                      : day?.date ?? ""
+                  }
+                  style={{
+                    height: 30,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 2,
+                    backgroundColor: hasSession ? C.surfaceElevated : "transparent",
+                    borderRadius: 4,
+                  }}
+                >
+                  <span style={{ fontSize: 10, color: hasSession ? C.primary : C.muted, lineHeight: 1 }}>
+                    {day ? day.date.slice(8) : ""}
+                  </span>
+                  <div style={{ width: dotSize, height: dotSize, borderRadius: "50%", backgroundColor: dotColor }} />
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
 
       {/* Legend */}
       <div className="flex items-center gap-3 mt-1">
         {[
-          { color: C.weak,      label: "< 3.0" },
-          { color: C.highlight, label: "3.0–3.9" },
-          { color: C.accent,    label: "≥ 4.0" },
+          { color: C.weak,   label: "< 3.0" },
+          { color: C.accent, label: "≥ 3.0" },
         ].map(({ color, label }) => (
           <div key={label} className="flex items-center gap-1">
-            <div style={{ width: 8, height: 8, borderRadius: 1, backgroundColor: color }} />
+            <div style={{ width: 8, height: 8, borderRadius: "50%", backgroundColor: color }} />
             <span style={{ fontSize: 10, color: C.muted }}>{label}</span>
           </div>
         ))}
+        <span style={{ fontSize: 10, color: C.muted }}>· dot size = session count</span>
       </div>
     </div>
   );
@@ -185,7 +198,7 @@ function CalendarHeatmap({ data, C }: { data: CalendarDay[]; C: ReturnType<typeo
 // ── Main component ────────────────────────────────────────────────────────────
 export function DiagnosticCharts({
   dimensionData, trendData, dimTrendData, weekCountData,
-  caseTypeData, calendarData, industryData,
+  caseTypeData, calendarData, industryData, subtitles,
 }: Props) {
   const C = useChartColors();
   const tt = tooltipBase(C);
@@ -193,17 +206,14 @@ export function DiagnosticCharts({
   const weakestIdx   = 0;
   const worstTypeIdx = caseTypeData.length - 1;
   const worstIndIdx  = industryData.length - 1;
-  const avgSessions  = weekCountData.length
-    ? weekCountData.reduce((s, w) => s + w.count, 0) / weekCountData.length
-    : 0;
 
   return (
     <div className="grid grid-cols-12 gap-4">
 
       {/* ── Row A: Skill Profile (5) + Progress Over Time (7) ── */}
 
-      <div className="col-span-12 lg:col-span-5">
-        <ChartCard title="Skill Profile" sub="Average score per dimension · 1–5 scale">
+      <div className="col-span-12 md:col-span-6 lg:col-span-5">
+        <ChartCard title="Skill Profile" sub={subtitles.skillProfile}>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={dimensionData} layout="vertical" margin={{ left: 4, right: 28, top: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={C.grid} horizontal={false} />
@@ -224,8 +234,9 @@ export function DiagnosticCharts({
         </ChartCard>
       </div>
 
-      <div className="col-span-12 lg:col-span-7">
-        <ChartCard title="Progress Over Time" sub="Weekly average · violet dot = most recent week">
+      <div className="col-span-12 md:col-span-6 lg:col-span-7">
+        {/* violet dot on last point is the one permitted highlight use */}
+        <ChartCard title="Progress Over Time" sub={subtitles.progressTime}>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={trendData} margin={{ left: 0, right: 16, top: 8, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
@@ -249,8 +260,8 @@ export function DiagnosticCharts({
 
       {/* ── Row B: Dimension Trends (7) + Sessions / Week (5) ── */}
 
-      <div className="col-span-12 lg:col-span-7">
-        <ChartCard title="Dimension Trends" sub="Per-dimension weekly average · all 5 dimensions">
+      <div className="col-span-12 md:col-span-7 lg:col-span-7">
+        <ChartCard title="Dimension Trends" sub={subtitles.dimTrends}>
           <ResponsiveContainer width="100%" height={220}>
             <LineChart data={dimTrendData} margin={{ left: 0, right: 16, top: 4, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={C.grid} />
@@ -274,8 +285,8 @@ export function DiagnosticCharts({
         </ChartCard>
       </div>
 
-      <div className="col-span-12 lg:col-span-5">
-        <ChartCard title="Sessions / Week" sub={`Volume by week · avg ${avgSessions.toFixed(1)} per week`}>
+      <div className="col-span-12 md:col-span-5 lg:col-span-5">
+        <ChartCard title="Sessions / Week" sub={subtitles.sessionsWeek}>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={weekCountData} margin={{ left: 0, right: 16, top: 8, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={C.grid} vertical={false} />
@@ -283,24 +294,16 @@ export function DiagnosticCharts({
               <YAxis allowDecimals={false} width={28}
                 tick={{ fill: C.muted, fontSize: 11 }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={tt} formatter={(v: any) => [v, "Sessions"]} />
-              <ReferenceLine y={avgSessions} stroke={C.accent} strokeDasharray="4 4"
-                strokeWidth={1} strokeOpacity={0.6} />
-              <Bar dataKey="count" radius={[3, 3, 0, 0]} maxBarSize={40}>
-                {weekCountData.map((_, i) => (
-                  <Cell key={i}
-                    fill={i === weekCountData.length - 1 ? C.highlight : C.accent}
-                    fillOpacity={i === weekCountData.length - 1 ? 0.9 : 0.7} />
-                ))}
-              </Bar>
+              <Bar dataKey="count" radius={[3, 3, 0, 0]} maxBarSize={40} fill={C.accent} fillOpacity={0.75} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
       </div>
 
-      {/* ── Row C: Case Type (4) + Calendar (4) + Industry (4) ── */}
+      {/* ── Row C: Case Type (6) + Industry (6) ── */}
 
-      <div className="col-span-12 lg:col-span-4">
-        <ChartCard title="By Case Type" sub="Average score · worst type in purple">
+      <div className="col-span-12 md:col-span-6">
+        <ChartCard title="By Case Type" sub={subtitles.caseType}>
           <ResponsiveContainer width="100%" height={160}>
             <BarChart data={caseTypeData} margin={{ left: 0, right: 16, top: 8, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={C.grid} vertical={false} />
@@ -324,14 +327,8 @@ export function DiagnosticCharts({
         </ChartCard>
       </div>
 
-      <div className="col-span-12 lg:col-span-4">
-        <ChartCard title="Session Calendar" sub="Each cell = one day · color = avg score">
-          <CalendarHeatmap data={calendarData} C={C} />
-        </ChartCard>
-      </div>
-
-      <div className="col-span-12 lg:col-span-4">
-        <ChartCard title="By Industry" sub="Average score · worst industry in purple">
+      <div className="col-span-12 md:col-span-6">
+        <ChartCard title="By Industry" sub={subtitles.industry}>
           {industryData.length === 0 ? (
             <p className="text-xs text-muted mt-2">No industry tags on sessions yet.</p>
           ) : (
@@ -357,6 +354,14 @@ export function DiagnosticCharts({
               </BarChart>
             </ResponsiveContainer>
           )}
+        </ChartCard>
+      </div>
+
+      {/* ── Row D: Session Calendar (full-width week strip) ── */}
+
+      <div className="col-span-12">
+        <ChartCard title="Session Calendar" sub={subtitles.calendar}>
+          <WeekStripCalendar data={calendarData} C={C} />
         </ChartCard>
       </div>
 
