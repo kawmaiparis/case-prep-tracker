@@ -312,12 +312,12 @@ export default async function DiagnosticPage() {
   ];
 
   return (
-    <div className="max-w-6xl xl:max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6 space-y-5">
+    <div className="max-w-6xl xl:max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6 space-y-4 md:space-y-5">
 
       {/* Header */}
-      <div className="flex items-baseline justify-between gap-4">
+      <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
         <Heading as="h1">Performance Diagnostic</Heading>
-        <Text muted size="xs" className="shrink-0">
+        <Text muted size="xs" className="sm:shrink-0">
           {sessions.length} sessions · {trendData.length} weeks · last {lastDateStr}
         </Text>
       </div>

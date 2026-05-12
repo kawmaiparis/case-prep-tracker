@@ -10,7 +10,7 @@ export default async function SessionsPage() {
   ]);
 
   return (
-    <div className="max-w-3xl xl:max-w-4xl mx-auto px-4 md:px-6 lg:px-8 py-6">
+    <div className="max-w-3xl xl:max-w-4xl mx-auto px-4 md:px-6 lg:px-8 py-4 md:py-6">
       <SessionTable sessions={sessions} partners={partners} caseTypes={caseTypes} />
     </div>
   );
