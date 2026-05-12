@@ -29,14 +29,16 @@ npm run lint      # ESLint
 
 ```
 app/
-  layout.tsx                — root layout (Inter font, Providers wrapper, BottomNav)
+  layout.tsx                — root layout (Inter font, Providers wrapper, AppShell)
   page.tsx                  — redirect to /diagnostic
   providers.tsx             — next-themes ThemeProvider (defaultTheme="dark")
   gate/page.tsx             — password gate landing page (demo access)
-  about/page.tsx            — placeholder ("Coming in Week 3")
+  about/page.tsx            — placeholder
   diagnostic/
-    page.tsx                — performance diagnostic (server component, Recharts charts)
-    DiagnosticCharts.tsx    — client component: 3 Recharts charts
+    page.tsx                — performance diagnostic (server component); computes all
+                              chart data + analytical subtitles + Focus Area recs
+    DiagnosticCharts.tsx    — client component: 7 Recharts charts + WeekStripCalendar;
+                              exports ChartSubtitles type
   sessions/page.tsx         — filterable sessions list (server component)
   log/page.tsx              — log session form
   auth/callback/route.ts    — Supabase OAuth callback handler
@@ -45,8 +47,10 @@ app/
 
 components/
   layout/
-    BottomNav.tsx           — mobile tab bar; hidden on /gate and /about
-    Header.tsx              — optional header with ThemeToggle
+    AppShell.tsx            — client wrapper: sidebar collapse state + localStorage
+                              persistence; syncs content paddingLeft with sidebar width
+    SidebarNav.tsx          — collapsible desktop sidebar (w-14 / w-52) + mobile overlay
+                              drawer; active state: cyan 3px left border + accent-bg tint
     ThemeToggle.tsx         — sun/moon SVG toggle (useTheme, mounted guard)
   sessions/
     SessionForm.tsx         — form with partner/case-type dropdowns, sliders, notes
@@ -80,21 +84,28 @@ supabase/
   seed_dev.sql              — 30 dev sessions across 8 weeks (Mar–May 2026)
 ```
 
-## v2 Design System
+## v3 Design System
 
-Dark mode by default. Aesthetic reference: Stripe Dashboard + Linear.
+Dark mode by default. Aesthetic reference: neon analytics dashboard (Stripe + Linear + dark-mode chart tools).
 
 **CSS variables** (defined in `app/globals.css`, consumed by Tailwind):
 
-| Token          | Dark value  | Light value |
-|----------------|-------------|-------------|
-| `bg-page`      | `#0A0A0B`   | `#FAFAF9`   |
-| `bg-surface`   | `#141416`   | `#FFFFFF`   |
-| `bg-surface-hover` | `#1C1C20` | `#F3F3F1` |
-| `border-divider` | `#26262A` | `#E5E5E5`  |
-| `text-primary` | `#FAFAF9`   | `#0A0A0B`   |
-| `text-muted`   | `#8B8B93`   | `#737373`   |
-| `text-accent`  | `#3B82F6`   | `#1E40AF`   |
+| Token               | Dark value            | Light value           |
+|---------------------|-----------------------|-----------------------|
+| `--bg`              | `#0A0A0F`             | `#FAFAFA`             |
+| `--surface`         | `#14141B`             | `#FFFFFF`             |
+| `--surface-elevated`| `#1F1F2A`             | `#F4F4F5`             |
+| `--border`          | `#27272F`             | `#E4E4E7`             |
+| `--text-primary`    | `#FAFAFA`             | `#18181B`             |
+| `--text-muted`      | `#71717A`             | `#71717A`             |
+| `--accent`          | `#06B6D4` (cyan)      | `#0891B2`             |
+| `--positive`        | `#10F4B1` (mint)      | `#059669`             |
+| `--warning`         | `#F43F5E` (coral red) | `#E11D48`             |
+| `--highlight`       | `#A78BFA` (violet)    | `#7C3AED`             |
+
+**5-series chart palette** (Dimension Trends): cyan → mint → coral → violet → amber. All unique.
+
+**Color discipline**: `--warning` (coral) = weakest dimension bar, lowest case-type/industry bar. `--highlight` (violet) = Progress Over Time last dot only. `--accent` (cyan) = default positive metric color.
 
 **Tailwind config**: `darkMode: "class"`, custom color tokens map to these vars.
 **Font**: Inter via `next/font` (`variable: "--font-inter"`, weights 400/500/700).
@@ -150,7 +161,14 @@ Do not revert this pattern.
 
 ## Mobile-first
 
-Design every component for a 375 px viewport first, then enhance for desktop with Tailwind responsive prefixes (`sm:`, `md:`, `lg:`). Bottom tab bar is the primary nav on mobile.
+Design every component for a 375 px viewport first, then enhance for desktop with Tailwind responsive prefixes (`sm:`, `md:`, `lg:`, `xl:`).
+
+**Responsive breakpoints used:**
+- `md:` (768px) — sidebar appears (hamburger hidden), KPI strip goes 2→4 cols, charts go 2-col
+- `lg:` (1024px) — chart column ratios refine (5/7 and 7/5 splits)
+- `xl:` (1280px) — diagnostic page max-width expands from `max-w-6xl` to `max-w-7xl`
+
+**Navigation**: collapsible sidebar (AppShell + SidebarNav) is the primary nav. Mobile uses a hamburger button (fixed top-left) that opens a 64px overlay drawer. Bottom tab bar (BottomNav.tsx) is superseded in v3 — kept in repo but not used.
 
 ## Security
 
@@ -167,3 +185,19 @@ legacy/
   tracker/db.py, models.py, reports.py, cli.py
   requirements.txt
 ```
+
+## Current Status (v3 — branch: diagnostic-v3-redesign)
+
+**Completed:**
+- V3-A: Collapsible sidebar (AppShell + SidebarNav) replaces BottomNav
+- V3-B: Diagnostic page restructured to 12-column CSS grid
+- V3-C: 7 charts — Skill Profile, Progress Over Time, Dimension Trends, Sessions/Week, By Case Type, By Industry, Session Calendar (WeekStripCalendar)
+- Fix pass: coral red warning color, 5-series palette uniqueness, color discipline (violet max 2 uses), Focus Area analytical copy, week-strip calendar, data-driven chart subtitles
+- V3-D: Responsive breakpoints (768/1024/1280), spacing tightened, CLAUDE.md updated
+
+**Diagnostic page data flow:**
+- Server component (`page.tsx`) fetches sessions, computes all chart data and `ChartSubtitles` in one pass
+- Client component (`DiagnosticCharts.tsx`) receives data as props; owns theme-aware color resolution via `useChartColors()`
+- Focus Area cards computed server-side: Top Priority gets 3px coral left border + warning-bg tint
+
+**Not yet started:** Sessions page v3, Log page v3, Drills page v3

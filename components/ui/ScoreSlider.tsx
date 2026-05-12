@@ -5,11 +5,11 @@ import { cn } from "@/lib/utils";
 const SCORE_LABELS = ["", "Poor", "Below Avg", "Average", "Good", "Excellent"];
 const SCORE_COLORS = [
   "",
-  "text-rose-400",
-  "text-amber-400",
-  "text-yellow-400",
-  "text-emerald-400",
-  "text-emerald-400",
+  "text-warning",
+  "text-warning",
+  "text-muted",
+  "text-accent",
+  "text-accent",
 ];
 
 type ScoreSliderProps = {
@@ -66,7 +66,7 @@ type ScoreBarProps = {
 export function ScoreBar({ value, max = 5 }: ScoreBarProps) {
   const pct = (value / max) * 100;
   const fill =
-    value <= 2 ? "bg-rose-400" : value === 3 ? "bg-amber-400" : "bg-accent";
+    value <= 2 ? "bg-warning" : value === 3 ? "bg-muted/50" : "bg-accent";
 
   return (
     <div className="flex items-center gap-2">

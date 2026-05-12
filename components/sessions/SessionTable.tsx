@@ -25,13 +25,13 @@ function scoreAvg(s: SessionWithDetails) {
 }
 
 function avgColor(avg: number) {
-  if (avg >= 4) return "text-emerald-400";
-  if (avg >= 3) return "text-amber-400";
-  return "text-rose-400";
+  if (avg >= 4) return "text-accent";
+  if (avg >= 3) return "text-muted";
+  return "text-warning";
 }
 
 const selectCls =
-  "bg-surface border border-divider text-primary text-sm rounded-md px-3 py-2 " +
+  "min-w-[140px] bg-surface border border-divider text-primary text-sm rounded-md px-3 py-2 " +
   "focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent " +
   "transition-colors cursor-pointer";
 
@@ -143,9 +143,13 @@ export function SessionTable({ sessions, partners, caseTypes }: Props) {
                       <span className={`text-sm font-bold tabular-nums ${avgColor(avg)}`}>
                         {avg.toFixed(1)}
                       </span>
-                      <span className="text-muted text-xs select-none">
-                        {isOpen ? "▲" : "▼"}
-                      </span>
+                      <svg
+                        width="12" height="12" viewBox="0 0 12 12" fill="none"
+                        aria-hidden
+                        className={`text-muted transition-transform duration-150 ${isOpen ? "rotate-180" : ""}`}
+                      >
+                        <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
                     </div>
                   </div>
                 </button>
