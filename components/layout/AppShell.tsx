@@ -40,8 +40,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             : undefined
         }
       >
-        {/* top padding on mobile to clear the hamburger button */}
-        <main className={hideSidebar ? "" : "pt-14 md:pt-0"}>
+        {/* bottom padding on mobile to clear the fixed tab bar */}
+        <main className={hideSidebar ? "" : "pb-16 md:pb-0"}>
           {children}
         </main>
       </div>
