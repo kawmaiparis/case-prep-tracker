@@ -59,6 +59,12 @@ const DIM_TEST: Record<string, string> = {
   "Data Analysis": "Per chart: write 2 questions the data raises before stating any insight",
 };
 
+function fmtDate(iso: string) {
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const [, m, d] = iso.split("-");
+  return `${months[parseInt(m, 10) - 1]} ${parseInt(d, 10)}`;
+}
+
 function mean(nums: number[]) {
   return nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : 0;
 }
@@ -318,7 +324,7 @@ export default async function DiagnosticPage() {
       <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
         <Heading as="h1">Performance Diagnostic</Heading>
         <Text muted size="xs" className="sm:shrink-0">
-          {sessions.length} sessions · {trendData.length} weeks · last {lastDateStr}
+          {sessions.length} sessions · {trendData.length} weeks · last {fmtDate(lastDateStr)}
         </Text>
       </div>
 
@@ -330,7 +336,7 @@ export default async function DiagnosticPage() {
         <StatCard
           label="Trend"
           value={trend === "up" ? "↑ Rising" : trend === "down" ? "↓ Slipping" : "→ Stable"}
-          sub="2nd half vs 1st half"
+          sub="2H vs 1H"
           color={trend === "up" ? "positive" : trend === "down" ? "warning" : "default"}
         />
       </div>
@@ -389,7 +395,7 @@ function StatCard({
     <Card>
       <CardBody className="space-y-0.5">
         <Text muted size="xs">{label}</Text>
-        <p className={`text-xl font-bold leading-tight ${valueClass}`}>{value}</p>
+        <p className={`text-lg sm:text-xl font-bold leading-tight ${valueClass}`}>{value}</p>
         <Text muted size="xs">{sub}</Text>
       </CardBody>
     </Card>
